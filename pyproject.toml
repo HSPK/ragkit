@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ragkit"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["HSPK <whxway@whu.edu.cn>"]
 readme = "README.md"
