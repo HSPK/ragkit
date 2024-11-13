@@ -21,6 +21,7 @@ class QdrantDefaultConfig:
     api_key = None
     text_embedding_model = "bge-m3"
     sparse_embedding_model = "bge-m3"
+    embedding_batch_size = 512
     use_sparse = False
     use_full_text = True
     batch_size = 64
@@ -138,6 +139,7 @@ class QdrantIndexer(BaseIndexer):
         api_key: str | None = None,
         text_embedding_model: str | None = None,
         sparse_embedding_model: str | None = None,
+        embedding_batch_size: int | None = None,
         use_sparse: bool = False,
         use_full_text: bool = True,
         batch_size: int | None = None,
@@ -159,6 +161,9 @@ class QdrantIndexer(BaseIndexer):
         )
         self.sparse_embedding_model = sparse_embedding_model or os.getenv(
             "QDRANT_SPARSE_EMBEDDING_MODEL", QdrantDefaultConfig.sparse_embedding_model
+        )
+        self.embedding_batch_size = embedding_batch_size or os.getenv(
+            "QDRANT_EMBEDDING_BATCH_SIZE", QdrantDefaultConfig.embedding_batch_size
         )
         self.use_sparse = use_sparse or os.getenv(
             "QDRANT_USE_SPARSE", QdrantDefaultConfig.use_sparse
@@ -231,13 +236,18 @@ class QdrantIndexer(BaseIndexer):
 
     async def _get_embeddings(self, texts: list[str]):
         try:
-            embed_output = await self.client.embedding(texts, model=self.text_embedding_model)
+            embed_output = await self.client.embedding(
+                texts,
+                model=self.text_embedding_model,
+                batch_size=self.embedding_batch_size,
+            )
             embeddings = embed_output.embedding
             assert len(embeddings) == len(texts)
             if self.use_sparse:
                 sparse_embed_output = await self.client.embedding(
                     texts,
                     model=self.sparse_embedding_model,
+                    batch_size=self.embedding_batch_size,
                     return_sparse=True,
                 )
                 sparse_embeddings = sparse_embed_output.weights
