@@ -44,8 +44,11 @@ class Document(BaseModel):
 
     def add_chunk(self, chunk: Union["Chunk", list["Chunk"]]):
         if isinstance(chunk, list):
+            for c in chunk:
+                c.doc_id = self.id
             self.chunks.extend(chunk)
         else:
+            chunk.doc_id = self.id
             self.chunks.append(chunk)
         self.num_chunks = len(self.chunks)
         self.child_chunk_ids = [c.id for c in self.chunks]
